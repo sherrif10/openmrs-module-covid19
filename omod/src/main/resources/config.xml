@@ -22,6 +22,15 @@
 	<require_version>${openmrsPlatformVersion}</require_version>
 
 	<require_modules>
+	<require_module version="${metadatamappingVersion}">
+			org.openmrs.module.metadatamapping
+		</require_module>
+		<require_module version="${dataexchangeModuleVersion}">
+            org.openmrs.module.dataexchange
+        </require_module>
+         <require_module version="${metadatadeployVersion}">
+            org.openmrs.module.metadatadeploy
+        </require_module>
 		<require_module version="${appframeworkVersion}">
 			org.openmrs.module.appframework
 		</require_module>

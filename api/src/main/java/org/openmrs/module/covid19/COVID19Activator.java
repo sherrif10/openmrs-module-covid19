@@ -27,8 +27,11 @@ import org.openmrs.api.FormService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ServiceContext;
 import org.openmrs.module.BaseModuleActivator;
+import org.openmrs.module.ModuleUtil;
+import org.openmrs.module.dataexchange.DataImporter;
 import org.openmrs.module.htmlformentry.HtmlFormEntryService;
 import org.openmrs.module.htmlformentryui.HtmlFormUtil;
+import org.openmrs.util.OpenmrsConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -70,7 +73,6 @@ public class COVID19Activator extends BaseModuleActivator implements Application
 	@SneakyThrows
 	public void started() {
 		log.info("Started COVID-19");
-		
 		if (this.applicationContext == null) {
 			Method getServiceContext = Context.class.getDeclaredMethod("getServiceContext");
 			getServiceContext.setAccessible(true);
@@ -81,7 +83,7 @@ public class COVID19Activator extends BaseModuleActivator implements Application
 		
 		this.applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
 		
-		if (conceptService.getConceptByUuid("165903A") == null) {
+		if (conceptService.getConceptByUuid("165903AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA") == null) {
 			setupConcepts();
 		}
 		
@@ -118,37 +120,14 @@ public class COVID19Activator extends BaseModuleActivator implements Application
 	
 	private void setupConcepts() {
 		// TODO These will eventually be replaced by CIEL
-		Concept caseDiagnosed = new Concept();
-		caseDiagnosed.setUuid("165903A");
+		DataImporter dataImporter = Context.getRegisteredComponent("dataImporter", DataImporter.class);
+		dataImporter.importData("Covid-19_Concepts-8.xml");
 		
-		ConceptName caseDiagnosedName = new ConceptName();
-		caseDiagnosedName.setLocale(Locale.ENGLISH);
-		caseDiagnosedName.setLocalePreferred(true);
-		caseDiagnosedName.setName("Country where diagnosed");
-		
-		ConceptDatatype coded = conceptService.getConceptDatatypeByName("Coded");
-		
-		caseDiagnosed.addName(caseDiagnosedName);
-		caseDiagnosed.setConceptClass(conceptService.getConceptClassByName("Question"));
-		caseDiagnosed.setDatatype(coded);
-		
-		caseDiagnosed.addAnswer(new ConceptAnswer(conceptService.getConceptByMapping("165820", "CIEL")));
-		
-		conceptService.saveConcept(caseDiagnosed);
-		
-		Concept concept = conceptService.getConceptByMapping("162689", "CIEL");
-		concept.setDatatype(conceptService.getConceptDatatypeByName("Text"));
-		conceptService.saveConcept(concept);
-		
-		for (String code : new String[] { "165198", "165655" }) {
-			concept = conceptService.getConceptByMapping(code, "CIEL");
-			concept.setDatatype(coded);
-			conceptService.saveConcept(concept);
+		if (ModuleUtil.compareVersion(OpenmrsConstants.OPENMRS_VERSION_SHORT, "2.2") < 0) {
+			dataImporter.importData("Covid-19_Numeric_Concepts-1_pre2.x.xml");
+		} else {
+			dataImporter.importData("Covid-19_Numeric_Concepts-1_2.x.xml");
 		}
-		
-		concept = conceptService.getConceptByMapping("165795", "CIEL");
-		concept.setConceptClass(conceptService.getConceptClassByName("Finding"));
-		concept.setDatatype(coded);
 	}
 	
 	/**
